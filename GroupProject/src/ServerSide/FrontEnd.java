@@ -63,9 +63,24 @@ public class FrontEnd {
       }
  
       System.out.println("Center Server operational ...");
+      
+///////////END CORBA INITIATION////////////////////////////////////////////////////////
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
  
   }
-///////////END CORBA INITIATION////////////////////////////////////////////////////////
+
   
   
   

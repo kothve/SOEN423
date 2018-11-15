@@ -19,19 +19,18 @@ public class Replica implements Runnable {
 	
 	
 	private HashMap<Integer, String> holdbackqueue;
+	private int sequenceNumber;
 	//UDP_Connect UDP_Server;
 	int totalNumberOfRecords = 0;	
 	int numberOfRecords;
-    //int counter;
-	 HashMap<Character, ArrayList<Records>> database;
-	private int sequenceNumber = 0;
+	HashMap<Character, ArrayList<Records>> database;
 	String location;
 	
 	
 	
 	
 	public Replica(String location, HashMap<Integer, String> holdbackqueue, HashMap<Character, ArrayList<Records>> database  ) {
-		
+		this.sequenceNumber = 0;
 		this.location = location;
 		this.holdbackqueue = holdbackqueue;
 		this.database = database;
@@ -46,11 +45,11 @@ public class Replica implements Runnable {
 
 
 		   
-
-	public void receiveUDPMessage(String ip, int port) throws IOException {
+	//RECEIVE MESSAGE FROM MULTICAST
+	public  synchronized void receiveUDPMessage(String ip, int port) throws IOException {
 		      
 			byte[] buffer=new byte[1024];
-		     MulticastSocket socket=new MulticastSocket(1111);
+		     MulticastSocket socket=new MulticastSocket(3000);
 		     InetAddress group=InetAddress.getByName("230.0.0.0");
 		     socket.joinGroup(group);
 		     
@@ -66,23 +65,30 @@ public class Replica implements Runnable {
 		         
 		     			JsonObject message = jsonFromString(msg);
 		         
+		     			
+		     			
+		     			
+		     				//determines if message received is not some random message
 		     				if(message.containsKey("sequenceNumber")){
 		         
 		        	 
+		     					//determines if the message received is should be delivered
 		     					if(Integer.parseInt(message.getString("sequenceNumber")) == this.sequenceNumber   ) {
 		     						
 		     						incrementSeqNum();
 		         		
-		     						//delivers message
+		     						deliver(msg);
 		     						
 		     					}
-		        		 
+		     					
+		     					//determines if the message received is not to be delivered and added to queue
 		     					else if(Integer.parseInt(message.getString("sequenceNumber")) > this.sequenceNumber) {
 		        		 
 		     						//adds to hold back queue
 		     						
 		     					this.holdbackqueue.put(Integer.parseInt(message.getString("sequenceNumber")), message.toString());	
-		        		 
+		     					
+		     					System.out.println("Message has been put on hold "+message.toString());
 		     					}
 		        	 
 		        	 
@@ -98,16 +104,19 @@ public class Replica implements Runnable {
 		      
 		   }
 		
-		   
-	public void	delivers(String message) {
+	//MESSAGE HAS PASSED SEQUENCE NUMBER CHECK AND NOW HAS TO BE EXECUTED	   
+	public String deliver(String message) {
 		
 		
+		//testing//
+		System.out.println("Message has been delivered :"+ message );		
+		
+		//execute method CreateERecord, CreateMRecord, etc... To be added
 		
 		
-		
-		
-		
-		
+		return message;//Message to return to the FE
+						
+				
 	}
 	
 	
@@ -143,6 +152,62 @@ public synchronized void incrementSeqNum() {
 		}
 		
 	}
+
+	public int getSequenceNumber() {
+		return this.sequenceNumber;
+	}
+	
+	///////////////////////testing replica//////////////////////////////////
+public static void main(String[] args) {
+	    
+		HashMap<Integer, String> holdbackqueue = new HashMap <Integer, String>();
+		HashMap<Character, ArrayList<Records>> database = new HashMap <Character, ArrayList<Records>>();
+		
+		
+		
+		
+		
+		Replica CA = new Replica("CA",holdbackqueue, database );
+		
+		CA.run();
+		
+		
+		
+		
+	      //CHECK HOLDING QUEUE FOR NEXT MESSAGE TO DELIVER
+	      while(true) {
+	    	  
+	    	  int seq = CA.getSequenceNumber();
+	    	  
+	    	  
+	    	  // If the replica Sequence number is equal to one of the sequence numbers in Queue, deliver the message associated to that seq number
+	    	  if(CA.holdbackqueue.containsKey(seq)) {
+	    		  
+	    		  
+	    		  CA.deliver(CA.holdbackqueue.get(seq));
+	    		  CA.incrementSeqNum();
+	    		  
+	    		  
+	    	  }
+	    	  
+	    	  
+	    	 
+	    	  
+	    	  
+	    	  
+	      }
+	      
+	      
+	      
+	      
+		
+		
+	   }
+	
+	
+	
+/////////////////////// END testing replica//////////////////////////////////
+	
 
 	
 

@@ -7,6 +7,9 @@ import ServerCenterApp.ServerCenterIDLPOA;
 
 import java.util.Properties;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.sql.Timestamp;
@@ -86,6 +89,12 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 		
 		info = makeJSON();
 		// TODO Auto-generated method stub
+		
+		//sends info to sequencer
+		to_Sequencer_UDP(1000, info );
+		
+		
+		
 		return info;
 	}
 
@@ -106,6 +115,13 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 		
 		
 		info = makeJSON();
+		
+		//sends info to sequencer
+				to_Sequencer_UDP(1000, info );
+		
+		
+		
+		
 		// TODO Auto-generated method stub
 		return info;
 	}
@@ -122,6 +138,10 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 		
 		
 		info = makeJSON();
+		
+		//sends info to sequencer
+				to_Sequencer_UDP(1000, info );
+		
 		// TODO Auto-generated method stub
 		return info;
 	}
@@ -142,6 +162,12 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 		
 		
 		info = makeJSON();
+		
+		//sends info to sequencer
+				to_Sequencer_UDP(1000, info );
+		
+		
+		
 		// TODO Auto-generated method stub
 		return info;
 	}
@@ -246,7 +272,51 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 	}//END METHOD MAKEJSON
 	
 	
-
+	public void to_Sequencer_UDP(int port, String message) {
+		
+		
+		
+		
+			
+			try {
+				DatagramSocket clientSocket = new DatagramSocket();
+			      InetAddress IPAddress = InetAddress.getByName("localhost");
+			      byte[] sendData = new byte[1024];
+			      byte[] receiveData = new byte[1024];
+			      
+			      sendData = message.getBytes();
+			      System.out.println("Sending to sequencer : "+ message );
+			      DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 1000);
+			      clientSocket.send(sendPacket);
+			      
+			     
+			    	           
+			      
+			      clientSocket.close();
+			     	      	     	      	     
+			      
+		 	          	      
+		 } // end try
+		  catch (Exception ex) {
+		    ex.printStackTrace( );
+		   
+		  } //end catch
+				
+			
+			
+			
+			
+			
+			
+			}//end get records
+		
+		
+		
+		
+		
+		
+		
+	
 	
 	
 	

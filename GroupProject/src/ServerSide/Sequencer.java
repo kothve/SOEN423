@@ -16,43 +16,61 @@ import javax.json.JsonValue;
 
 public class Sequencer {
 
-private DatagramSocket socket;
-private int sequenceNumber =  0;
-private InetAddress group;
-private byte[] buf; 
-	
+private static  DatagramSocket socket;
+
+private static  InetAddress group;
+private static  byte[] buf; 
+private static  int sequenceNumber =  0;
+
+
+
+
 	public static void main(String args[]) {
+		
+		
 		
 		
 		
 		Json FE_Request;
 		String FE_String;
 		
-					
-		
-		FE_String = run(1000);
-		
-		System.out.println( System.currentTimeMillis());
-		
-	
 		
 		
 		
 		
 		
-		
-		
-		
+		while(true) {
+			
+							
+			
+			FE_String = run(1000);
+			
+			
+			if(!FE_String.equals(null)) {
+				
+				try {
+					multicast(FE_String); //send messsage as multicast
+					multicast(testHoldQueue()); // sends message with seq number of 10 to test hold queue
+					System.out.println("sequenceNumber is: "+sequenceNumber );
+							
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+								
+			}
+							
+		}				
 		
 	}
 	
 	
 	
 	
-	public int getSequenceNum() {
+	public synchronized int getSequenceNum() {
 		
 		
-		return this.sequenceNumber;
+		return sequenceNumber;
 	}
 	
 	
@@ -61,24 +79,15 @@ private byte[] buf;
 	
 	
 	//multicast message to group
-	public void multicast(String multicastMessage) throws IOException {
+	public synchronized static void  multicast(String multicastMessage) throws IOException {
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+			
 		
 		        socket = new DatagramSocket();
 		        group = InetAddress.getByName("230.0.0.0");//which ever we decide on 
 		        buf = multicastMessage.getBytes();
 		 
-		        DatagramPacket packet  = new DatagramPacket(buf, buf.length, group, 4446);
+		        DatagramPacket packet  = new DatagramPacket(buf, buf.length, group, 3000);
 		        socket.send(packet);
 		        socket.close();
 		        
@@ -89,9 +98,9 @@ private byte[] buf;
 		        
 		    }
 	
-	public synchronized void incrementSeqNum() {
+	public synchronized static  void incrementSeqNum() {
 		
-		this.sequenceNumber= this.sequenceNumber + 1;
+		sequenceNumber++;
 	}
 	
 		
@@ -99,14 +108,14 @@ private byte[] buf;
 	
 	
 	//receive request from FRONT END
-	public static  String run(int port) { 
+	public synchronized static  String run(int port) { 
 		
 			String FE_Str = null;
 			DatagramSocket serverSocket = null;
 	      try {
 	    	
 	    	 serverSocket = new DatagramSocket(port);
-	        byte[] receiveData = new byte[8];
+	        byte[] receiveData = new byte[1024];
 	        
 	       
 
@@ -121,12 +130,22 @@ private byte[] buf;
 	              String sentence = new String( receivePacket.getData(), 0,
 	                                 receivePacket.getLength() );
 	              FE_Str = sentence;
+	              
 	              System.out.println("RECEIVED: " + sentence);
-	              // now send acknowledgement packet back to sender     
 	              
 	              
-	              return  sentence;   
+	              JsonObject obj = jsonFromString(FE_Str);
 	              
+	              //Checks if message received is a valid request in the right json format
+	              if(obj.containsKey("methodName")){
+	              
+	              
+	              
+	            	String FE_Str_seq =  addSequenceToJson(FE_Str);
+	              
+	              
+	              return  FE_Str_seq;   
+	              }
 	              
 	        }
 	      } catch (IOException e) {
@@ -143,8 +162,8 @@ private byte[] buf;
 	    }
 	
 	
-	//takes a json format String and adds a key, value
-	public String addSequenceToJson(String message) {
+	//takes a json format String and adds a key, value (In this case adds a sequence number)
+	public static String addSequenceToJson(String message) {
 		
 		
 		JsonObject object = jsonFromString(message);
@@ -155,7 +174,7 @@ private byte[] buf;
 	        job.add(entry.getKey(), entry.getValue());
 	    }
 		
-	    JsonObject newObject = job.add("sequenceNumber", Integer.toString(this.sequenceNumber)).build();
+	    JsonObject newObject = job.add("sequenceNumber", Integer.toString(sequenceNumber)).build();
 		
 		
 		
@@ -177,6 +196,17 @@ private byte[] buf;
 
 	    return object;
 	}
+	
+	
+	private  static String testHoldQueue(){
+		
+		String test_str = "{\"methodName\":\"getRecordCounts\",\"manager_ID\":\"CA10001\",\"sequenceNumber\":\"10\"}";
+		
+		return test_str;
+	}
+	
+	
+	
 	
 	
 
