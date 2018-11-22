@@ -5,6 +5,7 @@ import java.io.StringReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.security.KeyStore.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -14,53 +15,52 @@ import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
 
-public class Sequencer {
+public class Sequencer implements Runnable {
 
 private static  DatagramSocket socket;
 
-private static  InetAddress group;
-private static  byte[] buf; 
-private static  int sequenceNumber =  0;
+private   InetAddress group;
+private   byte[] buf; 
+private   int sequenceNumber; //unique ID
 
+
+ private Sequencer() {
+	 this.sequenceNumber = 0;
+	 	 
+ }
+
+
+ 
 
 
 
 	public static void main(String args[]) {
 		
+		Sequencer sequencer = new Sequencer();
 		
 		
-		
-		
-		Json FE_Request;
-		String FE_String;
-		
-		
-		
-		
-		
-		
-		while(true) {
-			
-							
-			
-			FE_String = run(1000);
-			
-			
-			if(!FE_String.equals(null)) {
-				
-				try {
-					multicast(FE_String); //send messsage as multicast
-					multicast(testHoldQueue()); // sends message with seq number of 10 to test hold queue
-					System.out.println("sequenceNumber is: "+sequenceNumber );
-							
+		//receives message for other sequencers 
+		Thread thread = new Thread() {
+		      public void run(){		       
+		    	  try {
+					sequencer.receiveUDPMessage("230.0.0.0", 4321);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-								
-			}
-							
-		}				
+		      }
+		   };
+		
+		
+		
+				
+		
+		
+		//receives message for other seqeuncers + and multicasts message to replicas
+		sequencer.run();
+		
+		
+		
 		
 	}
 	
@@ -70,7 +70,7 @@ private static  int sequenceNumber =  0;
 	public synchronized int getSequenceNum() {
 		
 		
-		return sequenceNumber;
+		return this.sequenceNumber;
 	}
 	
 	
@@ -79,7 +79,7 @@ private static  int sequenceNumber =  0;
 	
 	
 	//multicast message to group
-	public synchronized static void  multicast(String multicastMessage) throws IOException {
+	public synchronized void  multicast(String multicastMessage) throws IOException {
 		
 			
 		
@@ -90,15 +90,14 @@ private static  int sequenceNumber =  0;
 		        DatagramPacket packet  = new DatagramPacket(buf, buf.length, group, 3000);
 		        socket.send(packet);
 		        socket.close();
-		        
-		        
-		        //increments the sequence number
 		        incrementSeqNum();
+		        
+		        
 		        
 		        
 		    }
 	
-	public synchronized static  void incrementSeqNum() {
+	public synchronized   void incrementSeqNum() {
 		
 		sequenceNumber++;
 	}
@@ -108,7 +107,7 @@ private static  int sequenceNumber =  0;
 	
 	
 	//receive request from FRONT END
-	public synchronized static  String run(int port) { 
+	public synchronized   void receiveFE(int port) { 
 		
 			String FE_Str = null;
 			DatagramSocket serverSocket = null;
@@ -143,8 +142,21 @@ private static  int sequenceNumber =  0;
 	              
 	            	String FE_Str_seq =  addSequenceToJson(FE_Str);
 	              
-	              
-	              return  FE_Str_seq;   
+	            	if(!FE_Str_seq.equals(null)) {
+	    				
+	    				try {
+	    					multicast(FE_Str_seq); //send messsage as multicast
+	    					//multicast(testHoldQueue()); // sends message with seq number of 10 to test hold queue
+	    					System.out.println("sending : "+FE_Str_seq);
+	    					System.out.println("sequenceNumber is: "+ getSequenceNum() );
+	    							
+	    				} catch (IOException e) {
+	    					// TODO Auto-generated catch block
+	    					e.printStackTrace();
+	    				}
+	    								
+	    			}
+	                
 	              }
 	              
 	        }
@@ -154,7 +166,7 @@ private static  int sequenceNumber =  0;
 	      finally {if(serverSocket != null) serverSocket.close();}
 	      
 	      
-		return FE_Str;
+	
 	      
 	      
 	     
@@ -163,7 +175,7 @@ private static  int sequenceNumber =  0;
 	
 	
 	//takes a json format String and adds a key, value (In this case adds a sequence number)
-	public static String addSequenceToJson(String message) {
+	public  String addSequenceToJson(String message) {
 		
 		
 		JsonObject object = jsonFromString(message);
@@ -188,7 +200,7 @@ private static  int sequenceNumber =  0;
 	
 	
 	//takes a string in json format and converts it to Json Object
-	private static JsonObject jsonFromString(String jsonObjectStr) {
+	private  JsonObject jsonFromString(String jsonObjectStr) {
 
 	    JsonReader jsonReader = Json.createReader(new StringReader(jsonObjectStr));
 	    JsonObject object = jsonReader.readObject();
@@ -203,6 +215,50 @@ private static  int sequenceNumber =  0;
 		String test_str = "{\"methodName\":\"getRecordCounts\",\"manager_ID\":\"CA10001\",\"sequenceNumber\":\"10\"}";
 		
 		return test_str;
+	}
+	
+	
+	
+	public  synchronized void receiveUDPMessage(String ip, int port) throws IOException {
+	      
+		byte[] buffer=new byte[1024];
+	     MulticastSocket socket=new MulticastSocket(3000);
+	     InetAddress group=InetAddress.getByName("230.0.0.0");
+	     socket.joinGroup(group);
+	     
+	     		while(true){
+	     			
+	     			System.out.println("Waiting for multicast message...");
+	     			DatagramPacket packet=new DatagramPacket(buffer,
+	     					buffer.length);
+	     			socket.receive(packet);
+	     			String msg = new String(packet.getData(),
+	     					packet.getOffset(),packet.getLength());
+	     			System.out.println("[Multicast UDP message received>> "+msg);
+	         
+	     			JsonObject message = jsonFromString(msg);
+	         
+	     			
+	     			
+	     			
+	     				//determines if message received is not some random message
+	     				if(message.containsKey("sequenceNumber")){
+	         
+	        	 
+	     					//determines if the message received is should be delivered
+	     					if(Integer.parseInt(message.getString("sequenceNumber")) >= this.sequenceNumber   ) {
+	     						
+	     						this.sequenceNumber = Integer.parseInt(message.getString("sequenceNumber")) + 1;
+     						
+	     					}
+      
+	      }        
+	      }
+      
+	   }
+
+	public void run() {
+		receiveFE(1000);
 	}
 	
 	
