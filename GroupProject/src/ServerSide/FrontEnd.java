@@ -7,6 +7,7 @@ import org.omg.CORBA.*;
 import org.omg.PortableServer.*;
 import org.omg.PortableServer.POA;
 import java.util.Properties;
+import java.util.Scanner;
  
 public class FrontEnd {
  
@@ -17,6 +18,11 @@ public class FrontEnd {
 	
 	
   public static void main(String args[]) {
+	  
+	  System.out.println("Option 0: FE checks for software failure (Non malicious byzantine)");
+      System.out.println("Option 1: FE checks for a replica crash");
+	  Scanner in = new Scanner(System.in);
+      int num = in.nextInt();
 
 ///////////////////////////////////////CORBA SERVER INITIATION //////////////////////////////////////
     try{
@@ -25,8 +31,15 @@ public class FrontEnd {
       POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
       rootpoa.the_POAManager().activate();
  
+     
+     
+
+      
+      
+      
+      
       // create servant and register it with the ORB
-      RequestInfo request = new RequestInfo();
+      RequestInfo request = new RequestInfo(num);
       request.setORB(orb); 
 
 

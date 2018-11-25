@@ -43,7 +43,7 @@ private   int sequenceNumber; //unique ID
 		Thread thread = new Thread() {
 		      public void run(){		       
 		    	  try {
-					sequencer.receiveUDPMessage("230.0.0.0", 4321);
+					sequencer.receiveUDPMessage("230.0.0.0", 3000);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
