@@ -266,7 +266,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 	
 	
 	
-	//TRANSFORMS THE ARGUMENTS INTO A JSON OBJ
+	//TRANSFORMS THE ARGUMENTS INTO A JSON OBJ////////////////////
 	public String makeJSON() {
 		
 		
@@ -374,8 +374,10 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 	return jsonString;		
 		
 	}//END METHOD MAKEJSON
+	/////////////////////////////////////////////////////////////////////////////////////////
 	
 	
+	//SENDS TO SEQUENCER BY UDP
 	public void to_Sequencer_UDP(int port, String message) {
 		
 		
@@ -403,7 +405,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 		   
 		  } //end catch
 	}
-	
+	/////////////////////////////////////////////////////////
 	
 	
 	
@@ -485,7 +487,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
          			  
          			  public void run() {
          				  
-         				 timerCheck(receiveMsg, timeArray[1]*2); 
+         				 timerCheck(receiveMsg, timeArray[1]*2);////////////////////timer checks after delay if there is a third message 
          				  
          			  }
          		  });
@@ -561,6 +563,8 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 //////////////////////////END CHECKING FOR SERVER CRASH///////////////////////////
 	
 	
+	
+/////////////////////////////CREATE TIMER////////////////////////////////////////	
 	public void timerCheck(String[] receiveMsg, long time) {
 		
 			Timer timer = new Timer();	 
@@ -588,7 +592,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
       			
 	
 	}
-	
+	/////////////////////////////////////////////////////////////////////////////////////
 	
 	
 	
@@ -620,14 +624,12 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 
         while(true)
         {
-        	 serverSocket.receive(receivePacket);
-        	 
+        	 serverSocket.receive(receivePacket);	 
               String sentence = new String( receivePacket.getData(), 0,
                                  receivePacket.getLength() );
               replica_Str = sentence;             
               System.out.println("RECEIVED: " + sentence);
-              JsonObject obj = jsonFromString(replica_Str);
-              
+              JsonObject obj = jsonFromString(replica_Str);       
               //IF we want to look for different values (servertype 0)
               //Checks if message received is a message sent from a replica in the right json format
               if(serverType == 0 && obj.containsKey("sequenceNumber")){ //
@@ -642,30 +644,14 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
             	  message = obj.getString("message");
             	  receiveMsg[rm-1] = message;
             	  index++;
-            	 
-            	  
-            	 // }
-            	  /*
-            	  else if(location.equals(obj.getString("manager_ID").substring(0,2)) && sequence.equals(obj.getString("sequenceNumber")) ) {
-           		 
-                	  message = obj.getString("message");
-                	  receiveMsg[rm-1] = message;
-                	  index++;  
-                	 
-                	  System.out.println("RECEIVED: " + sentence ); 
-            	  }*/
-            	             	            	  
-            	  
-            	  if(index == 3 ) {
+  	  
+            	  		if(index == 3 ) {
             		  
-            		  try {
-            		        serverSocket.close();
-            		        System.out.println("The server is shut down!");
-            		    } catch (Exception e) { /* failed */ }
-            	  }
-            	                                                	
-              
-                        
+            	  			try {
+            	  				serverSocket.close();
+            	  				System.out.println("The server is shut down!");
+            	  				} catch (Exception e) { /* failed */ }
+            	  }               
               }
               
         }
@@ -745,7 +731,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
      
      }
       
-      
+    ///////////////////////////////////////////////////////////////////  
       
       
       
@@ -772,14 +758,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 	}
 		
 	
-	public long timeMillisecond() {
-		
-		
-		
-		
-		
-		return System.currentTimeMillis();
-	}
+
 		
 	private  JsonObject jsonFromString(String jsonObjectStr) {
 
@@ -790,7 +769,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 	    return object;
 	}
 	
-	//mutlicast to RM's which Replica and the error type
+	//////////////////mutlicast to RM's which Replica and the error type///////////////////
 	public synchronized void  multicast(String location, int rm, String error) throws IOException {
 		
 		
@@ -820,7 +799,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
         
     }
 	
-
+///////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	 public void shutdown() {
 	     orb.shutdown(false);
