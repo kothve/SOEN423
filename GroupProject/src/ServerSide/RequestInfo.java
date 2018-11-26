@@ -34,6 +34,7 @@ import java.util.Iterator;
 
 public class RequestInfo  extends ServerCenterIDLPOA  {
 	boolean serverCrash = false;
+	DatagramSocket serverSocketCrash;	
 	private static  DatagramSocket socket;
 	private   InetAddress group;
 	private   byte[] buf; 
@@ -55,6 +56,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 	 String recordID;
 	 String fieldName;
 	 String newValue;
+	 int missingRM = 0;
 	 int port = 2222;
 	 String IP_address;
 	 DatagramSocket serverSocket;
@@ -390,14 +392,10 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 			      System.out.println("Sending to sequencer : "+ message );
 			      DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 1000);
 			      clientSocket.send(sendPacket);
-			      
-			     
-			    	           
+		    	           
 			      
 			      clientSocket.close();
-			     
-			     
-			     
+		     
 		 	          	      
 		 } // end try
 		  catch (Exception ex) {
@@ -414,22 +412,22 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 	
 	public synchronized  String checkForCrash(int port, long time) {
 		
-		
-		Timer timer = new Timer();	 
+		serverCrash = false;		
 		int index = 0;			
 		int rm = 0;
 		int[] RMsToMSG = {10, 10, 10};
 		String message = null;
-		String[] receiveMsg =  {"", "", ""};
+		String[] receiveMsg =  {"", "", "empty"};
 		long[] timeArray = {0,0,0};
+		int missingRM = 0;
 		String replica_Str = null;
 		String sequence = null;
-		DatagramSocket serverSocket = null;
+		
 
 		
       try {
     	
-    	serverSocket = new DatagramSocket(port);
+    	serverSocketCrash = new DatagramSocket(port);
         byte[] receiveData = new byte[1024];
         
         System.out.printf("Listening on udp",
@@ -444,21 +442,24 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
         while(true)
         {
         	
-        	 serverSocket.receive(receivePacket);
+        	 serverSocketCrash.receive(receivePacket);
         	 
               String sentence = new String( receivePacket.getData(), 0,
                                  receivePacket.getLength() );
               replica_Str = sentence;             
               System.out.println("RECEIVED: " + sentence);
               JsonObject obj = jsonFromString(replica_Str);
-              
+              System.out.println("index is " + index);
               //IF we want to look for different values (servertype 0)
               //Checks if message received is a message sent from a replica in the right json format
               System.out.println("server type is " + serverType);
+              
+              
+        
               if(serverType == 1 && obj.containsKey("rm")){ //
             	  
-            	  System.out.println("index is " + index);
-            	  //System.out.println(index);
+	  
+            	  System.out.println(index);
             	  //System.out.println(timeArray.length);
             	  //            	  
             	  //if(index==0) {
@@ -466,77 +467,41 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
             	  rm = obj.getInt("rm");
             	  sequence = obj.getString("sequenceNumber");
             	  message = obj.getString("message");
-            	  if(index ==3) {
-            		  receiveMsg[2] = message; 
-                	  RMsToMSG[2] = rm; 
-                	  receiveMsg[2] = message; 
-                	  RMsToMSG[2] = rm;
-                	  
-                	  timeArray[2] = System.currentTimeMillis() - time;
-            		  
-            	  }
-            	  else{
+            	             	 
             	  receiveMsg[index] = message; 
             	  RMsToMSG[index] = rm;
             	  
             	  timeArray[index] = System.currentTimeMillis() - time;
             	  index++;
-            	  }}
-                 
-             
-            	  if(index == 2) {
-               		 
-            		  
-            		  
-            		  
-       		  
-             		  System.out.println( "Starting timer with time : " + timeArray[1]*2 );
-             		  
-               		
-               		 
-               		 timer.schedule(new TimerTask() {
-               			  @Override
-               			  public void run() {
-               			                 				             				
-               					 System.out.println( "Third message " + receiveMsg[2]); 
-               									
-               					 if("".equals(receiveMsg[2])) {
-               						 
-               						serverCrash = true;
-               						
-									}
-  								
- 									}   
-               			  
-               			},timeArray[1]*2  ); //timeArray[firstTwoReception[1]] );
-               		 
-               		 
-               		try {
-        				Thread.sleep(1000);
-        			} catch (InterruptedException e) {
-        				// TODO Auto-generated catch block
-        				e.printStackTrace();
-        			}
-               		 
-               		 
-               		 
-               		 
-               		index++;
-               	 } 
-            	  
-            	  
-           		  
-          	  if(index == 3) {
+            	  System.out.println("check 2 index : " + index);
+            	  }
+              
+       		
+              if(index == 2) { 		  
+         		  System.out.println( "Starting timer with time : " + timeArray[1]*2 );
+    		  
+         		  
+         		  Thread t = new Thread(new Runnable() {
+         			  
+         			  public void run() {
+         				  
+         				 timerCheck(receiveMsg, timeArray[1]*2); 
+         				  
+         			  }
+         		  });
+         		  
+         		  t.start();
+         		 
+           	 }  
+  
+          	  if(index == 3 ) {
           		try {
-    		        serverSocket.close();
+    		        serverSocketCrash.close();
     		      
     		        System.out.println("The server is shut down!");
     		    } catch (Exception e) { }
             	  }  
-          	  
-          	
-          	        	  
-              
+           
               
         }
       } catch (IOException e) {
@@ -545,9 +510,24 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
       
       if(serverCrash) {
     	  
-    	  
+    	  if(RMsToMSG[0] == 1 && RMsToMSG[1] == 2 ) {
+ 			  
+ 			  missingRM = 3;
+ 		  }
+ 		  
+ 		  else if(RMsToMSG[0] == 2 && RMsToMSG[1] == 3 ) {
+ 			  
+ 			  missingRM = 1;
+ 		  }
+ 		 else if(RMsToMSG[0] == 1 && RMsToMSG[1] == 3 ) {
+			  
+			  missingRM = 2;
+		  }
+	  
     	  try {
-			multicast(RMlocation, 3, "crash");
+			multicast(RMlocation, missingRM, "crash");
+			
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -564,7 +544,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
       
      if(receiveMsg[0].equals(receiveMsg[1])) {
 	
-		 message = receiveMsg[1];
+		 message = receiveMsg[0];
 	 }  
      
      
@@ -581,7 +561,33 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 //////////////////////////END CHECKING FOR SERVER CRASH///////////////////////////
 	
 	
+	public void timerCheck(String[] receiveMsg, long time) {
+		
+			Timer timer = new Timer();	 
+    		  System.out.println( "Starting timer with time : " + time );
+    		  
+      		
+      		 
+      		TimerTask task = new TimerTask() {
+      			  
+				@Override
+      			  public void run() {
+      				  	if(receiveMsg[2].equals("empty")) {
+      			         System.out.println("EXECUTING TIMER TASK");       				             				
+      					 serverCrash = true;
+      					 serverSocketCrash.close();}
+      						
+      			  }      					
+								   
+      			  
+      			}; //timeArray[firstTwoReception[1]] );
+      			
+      			
+      			
+      			timer.schedule(task, time);
+      			
 	
+	}
 	
 	
 	
