@@ -99,7 +99,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 		info = makeJSON();
 		
 		
-		to_Sequencer_UDP(1000, info );
+		to_Sequencer_UDP(1000, info);
 		
 		if(serverType == 0) {
 		 returnMessage =  receiveFromReplica(2222);  
@@ -174,7 +174,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 		this.projectID = projectID;
 		
 		
-		
+		info = makeJSON();
 		
 		
 		to_Sequencer_UDP(1000, info );
@@ -209,9 +209,10 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 		this.remoteCenterServer = remoteCenterServer;
 		
 		
+		info = makeJSON();
 		
-		
-		to_Sequencer_UDP(1000, info );
+		System.out.println("info is :" + info);
+		to_Sequencer_UDP(1000, info);
 		
 		if(serverType == 0) {
 		 returnMessage =  receiveFromReplica(2222);  
@@ -244,10 +245,10 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 		
 		
 		
+		info = makeJSON();
 		
 		
-		
-		to_Sequencer_UDP(1000, info );
+		to_Sequencer_UDP(1000, info);
 		
 		if(serverType == 0) {
 		 returnMessage =  receiveFromReplica(2222);  
@@ -352,7 +353,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 		
 		
 	}		
-	else if(method.equals("transferRecords")) {
+	else if(method.equals("transferRecord")) {
 		
 		jsonString = Json.createObjectBuilder()
 	            .add("methodName", this.methodName)
@@ -377,35 +378,9 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 	/////////////////////////////////////////////////////////////////////////////////////////
 	
 	
-	//SENDS TO SEQUENCER BY UDP
-	public void to_Sequencer_UDP(int port, String message) {
-		
-		
-		String messageToClient = null;
-		
-			
-			try {
-				DatagramSocket clientSocket = new DatagramSocket();
-			      InetAddress IPAddress = InetAddress.getByName("localhost");
-			      byte[] sendData = new byte[1024];
-			      byte[] receiveData = new byte[1024];
-			      
-			      sendData = message.getBytes();
-			      System.out.println("Sending to sequencer : "+ message );
-			      DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 1000);
-			      clientSocket.send(sendPacket);
-		    	           
-			      
-			      clientSocket.close();
-		     
-		 	          	      
-		 } // end try
-		  catch (Exception ex) {
-		    ex.printStackTrace( );
-		   
-		  } //end catch
-	}
-	/////////////////////////////////////////////////////////
+
+
+
 	
 	
 	
@@ -632,7 +607,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
               JsonObject obj = jsonFromString(replica_Str);       
               //IF we want to look for different values (servertype 0)
               //Checks if message received is a message sent from a replica in the right json format
-              if(serverType == 0 && obj.containsKey("sequenceNumber")){ //
+              if(serverType == 0 && obj.containsKey("rm")){ //
             	  
             	  
             	  // 
@@ -640,7 +615,7 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
             	  //if(index==0) {
             	  location = obj.getString("manager_ID").substring(0,2);
             	  rm = obj.getInt("rm");
-            	  sequence = obj.getString("sequenceNumber");
+            	  
             	  message = obj.getString("message");
             	  receiveMsg[rm-1] = message;
             	  index++;
@@ -798,10 +773,40 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
         
         
     }
-	
+	public void to_Sequencer_UDP(int port, String message) {
+		
+		
+		String messageToClient = null;
+		
+			
+			try {
+				DatagramSocket clientSocket = new DatagramSocket();
+			      InetAddress IPAddress = InetAddress.getByName("localhost");
+			      byte[] sendData = new byte[1024];
+			      byte[] receiveData = new byte[1024];
+			      
+			      sendData = message.getBytes();
+			      System.out.println("Sending to sequencer : "+ message );
+			      DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 1000);
+			      clientSocket.send(sendPacket);
+		    	           
+			      
+			      clientSocket.close();
+		     
+		 	          	      
+		 } // end try
+		  catch (Exception ex) {
+		    ex.printStackTrace( );
+		   
+		  } //end catch
+	}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+	@Override
+	public void shutdown() {
+		// TODO Auto-generated method stub
+		 orb.shutdown(false);
+	}
 	
-	 public void shutdown() {
-	     orb.shutdown(false);
-	   }
+	 
 }

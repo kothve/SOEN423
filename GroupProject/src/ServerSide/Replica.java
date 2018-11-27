@@ -154,7 +154,7 @@ public class Replica implements Runnable {
 		
 		to_FE_UDP(2222, jsonString1); 
 		
-		//to_FE_UDP(2222, jsonString2); 
+		to_FE_UDP(2222, jsonString2); 
 						
 				
 	}
