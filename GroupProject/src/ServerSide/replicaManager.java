@@ -79,9 +79,9 @@ public class replicaManager implements Runnable {
 
                 //Getting Target RM Integer Value
                 //**********************************************************************
-                String intendedRM = null;
+                int intendedRM = 0;
 				try {
-					intendedRM = incomingMessage.getString("rm");
+					intendedRM = incomingMessage.getInt("rm");
 				} catch (JSONException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -224,19 +224,26 @@ public class replicaManager implements Runnable {
                                 if(recordID.substring(0,2).equals("MR") && recordID.charAt(5) == '0'){
                                 	recordID = "MR"+recordID.charAt(6);
                                 }
-                                else if(recordID.substring(5, 6).equals("MR") && recordID.charAt(5) != '0') {
+                                else if(recordID.substring(0, 2).equals("MR") && recordID.charAt(5) != '0') {
                                 	recordID = "MR"+recordID.substring(5, 7);
                                 }
                                 if(recordID.substring(0,2).equals("ER") && recordID.charAt(5) == '0'){
                                 	recordID = "ER"+recordID.charAt(6);
                                 }
-                                else if(recordID.substring(5, 6).equals("ER") && recordID.charAt(5) != '0') {
+                                else if(recordID.substring(0, 2).equals("ER") && recordID.charAt(5) != '0') {
                                 	recordID = "ER"+recordID.substring(5, 7);
                                 }
                                 
-                                
+                                if(recordID.substring(0,2).equals("MR")){
                                 Records currentRecord = new Records(recordID, firstName,lastName,employeeID,mailID,projectID,projectClient,projectName,location);
-                                newList.add(currentRecord);
+                                newList.add(currentRecord);}
+                                
+                                else if(recordID.substring(0,2).equals("ER")) {
+                                	
+                                	Records currentRecord = new Records(recordID, firstName,lastName,employeeID,mailID,projectID);	
+                                	newList.add(currentRecord);
+                                	
+                                }
                                 
                                 
                             	} catch (JSONException e) {

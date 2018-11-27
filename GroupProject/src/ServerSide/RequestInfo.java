@@ -328,8 +328,8 @@ public class RequestInfo  extends ServerCenterIDLPOA  {
 		
 		jsonString =  Json.createObjectBuilder()
 	            //.add("methodName", this.methodName)
-				.add("methodName", "getRecordCounts")
-	            .add("manager_ID", "CA10001")
+				.add("methodName", this.methodName)
+	            .add("manager_ID", this.manager_ID)
 				//.add("args", Json.createObjectBuilder().add("firstName", "Bob"))
 	            .add("port", this.port)
 	            .add("ip", getIP())

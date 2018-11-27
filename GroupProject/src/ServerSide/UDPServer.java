@@ -26,6 +26,7 @@ public class UDPServer extends Thread {
     HashMap<Character, ArrayList<Records>> database;
     private int sequenceNumber = 0;
     UDP_Connect UDP_Connect_to_other_replicas;
+    int RMError;
     
 
     int desiredPort;
@@ -38,11 +39,11 @@ public class UDPServer extends Thread {
         this.rm = rm;
     }
 
-    public UDPServer(int port, String location, String errorType) {
+    public UDPServer(int port, String location, int RMerror) {
     	
     	 this.desiredPort = port;
          this.currentLocation = location;
-
+         this.RMError = RMerror;
          HashMap<Character, ArrayList<Records>> database  = new HashMap();
          
          if(port == 6050 || port == 6051 || port == 6052) {
@@ -352,6 +353,11 @@ public class UDPServer extends Thread {
                 }
             }
 
+        }
+        if(RMError == rm) {
+        
+        message = "randomMSG";
+        	
         }
         to_FE_UDP(message, json.getString("manager_ID"));
         System.out.println("returning this to FE "+message);

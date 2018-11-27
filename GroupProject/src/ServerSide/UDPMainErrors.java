@@ -2,6 +2,9 @@ package ServerSide;
 
 import java.util.Scanner;
 
+
+///////////////TEST SCENARIO FOR SOFTWARE ISSUES//////////////////////REPLICAS OF 1 RM WILL BE RETURNING WRONG VALUES
+
 public class UDPMainErrors {
 	public static void main(String args[]) {
 		
@@ -9,44 +12,44 @@ public class UDPMainErrors {
 		
 		
 			System.out.println("Select Replicas to make mistakes[1, 2 or 3]");
-	    
+			System.out.println("Crash one replica either [1, 2 or 3]");
 		 
 	      int num = in.nextInt();
 		
         //Starting Servers for First RM set of Replicas
         //***********************************************************
-        UDPServer firstServer = new UDPServer(6050, "CA");
+        UDPServer firstServer = new UDPServer(6050, "CA",num );
         firstServer.start();
 
         
-        UDPServer secondServer = new UDPServer(6051, "US");
+        UDPServer secondServer = new UDPServer(6051, "US", num);
         secondServer.start();
 
-        UDPServer thirdServer = new UDPServer(6052, "UK");
+        UDPServer thirdServer = new UDPServer(6052, "UK",num);
         thirdServer.start();
         //***********************************************************
 
         //Starting Servers for Second RM set of Replicas
         //***********************************************************
-        UDPServer firstServer2 = new UDPServer(6053, "CA");
+        UDPServer firstServer2 = new UDPServer(6053, "CA",num );
         firstServer2.start();
 
-        UDPServer secondServer2 = new UDPServer(6054, "US");
+        UDPServer secondServer2 = new UDPServer(6054, "US",num );
         secondServer2.start();
 
-        UDPServer thirdServer2 = new UDPServer(6055, "UK");
+        UDPServer thirdServer2 = new UDPServer(6055, "UK",num );
         thirdServer2.start();
         //***********************************************************
 
         //Starting Servers for Third RM set of Replicas
         //***********************************************************
-        UDPServer firstServer3 = new UDPServer(6056, "CA");
+        UDPServer firstServer3 = new UDPServer(6056, "CA",num);
         firstServer3.start();
 
-        UDPServer secondServer3 = new UDPServer(6057, "US");
+        UDPServer secondServer3 = new UDPServer(6057, "US",num);
         secondServer3.start();
 
-        UDPServer thirdServer3 = new UDPServer(6058, "UK");
+        UDPServer thirdServer3 = new UDPServer(6058, "UK",num);
         thirdServer3.start();
         //***********************************************************
 
