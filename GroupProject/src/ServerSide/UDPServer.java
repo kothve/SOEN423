@@ -182,10 +182,13 @@ public class UDPServer extends Thread {
     }
 
     
-    private JsonObject execute(JsonObject json) {
+    private synchronized String execute(JsonObject json) {
+    	String message = null;
+    	
         if (json.containsKey("methodName")) {
+        	
             String methodName = json.getString("methodName");
-            if (methodName == "createMRecord") {
+            if (methodName.equals("createMRecord")) {
                 if (json.containsKey("args")) {
                     JsonObject methodArgs = json.getJsonObject("args");
                     if (
@@ -199,7 +202,7 @@ public class UDPServer extends Thread {
                                     methodArgs.containsKey("projectName") &&
                                     methodArgs.containsKey("location")
                     ) {
-                        createMRecord(
+                    	message = createMRecord(
                                 json.getString("manager_ID"),
                                 methodArgs.getString("firstName"),
                                 methodArgs.getString("lastName"),
@@ -213,7 +216,7 @@ public class UDPServer extends Thread {
                     }
 
                 }
-            } else if (methodName == "createERecord") {
+            } else if (methodName.equals("createERecord")) {
                 JsonObject methodArgs = json.getJsonObject("args");
                 if (
                         json.containsKey("manager_ID") &&
@@ -223,7 +226,7 @@ public class UDPServer extends Thread {
                                 methodArgs.containsKey("mailId") &&
                                 methodArgs.containsKey("projectId")
                 ) {
-                    createERecord(
+                	message =  createERecord(
                             json.getString("manager_ID"),
                             methodArgs.getString("firstName"),
                             methodArgs.getString("lastName"),
@@ -233,12 +236,15 @@ public class UDPServer extends Thread {
                     );
                 }
 
-            } else if (methodName == "getRecordCounts") {
-                JsonObject methodArgs = json.getJsonObject("args");
-                if (methodArgs.containsKey("manager_ID")) {
-                    getRecordCounts(json.getString("manager_ID"));
-                }
-            } else if (methodName == "editRecord") {
+            } else if (methodName.equals("getRecordCounts")) {
+            	System.out.println("Trying to execute Record Counts");
+                //JsonObject methodArgs = json.getJsonObject("args");
+                
+               // if (methodArgs.containsKey("manager_ID")) {
+                	message = getRecordCounts(json.getString("manager_ID"));
+                	System.out.println(getRecordCounts(json.getString("manager_ID")));
+               // }
+            } else if (methodName.equals("editRecord")) {
                 JsonObject methodArgs = json.getJsonObject("args");
                 if (
                         json.containsKey("manager_ID") &&
@@ -246,7 +252,7 @@ public class UDPServer extends Thread {
                                 methodArgs.containsKey("fieldName") &&
                                 methodArgs.containsKey("newValue")
                 ) {
-                    editRecord(
+                	message =  editRecord(
                             json.getString("manager_ID"),
                             methodArgs.getString("recordId"),
                             methodArgs.getString("fieldName"),
@@ -260,7 +266,7 @@ public class UDPServer extends Thread {
                                 methodArgs.containsKey("recordId") &&
                                 methodArgs.containsKey("remoteLocation")
                 ) {
-                    transferRecord(
+                	message = transferRecord(
                             json.getString("manager_ID"),
                             methodArgs.getString("recordId"),
                             methodArgs.getString("remoteLocation")
@@ -269,8 +275,9 @@ public class UDPServer extends Thread {
             }
 
         }
-
-        return null;
+        to_FE_UDP(message, json.getString("manager_ID"));
+        System.out.println("returning this to FE "+message);
+        return message;
     }
     
     ////////////////////////////////////////A2 METHODS//////////////////////////////////////////////
@@ -475,7 +482,7 @@ public class UDPServer extends Thread {
  			  else if(rm == 2) {
  				 US = UDP_Connect_to_other_replicas .getRecords(6054);
  	 			 
- 	 			 UK = UDP_Connect_to_other_replicas .getRecords(6005);  
+ 	 			 UK = UDP_Connect_to_other_replicas .getRecords(6055);  
  				  
  				  
  			  }
@@ -1197,12 +1204,12 @@ public class UDPServer extends Thread {
 		return test_str;
 	}
 	//SENDS TO FE BY UDP
-		public void to_Sequencer_UDP(int port, String message, String manager_ID) {
+		public void to_FE_UDP(String message, String manager_ID) {
 			
 			
 			String jsonString = Json.createObjectBuilder()
 		            .add("manager_ID", manager_ID)
-		            .add("rm", 3)		            
+		            .add("rm", rm)		            
 		            .add("message", message)	            
 		            .build()
 		            .toString();
@@ -1219,9 +1226,9 @@ public class UDPServer extends Thread {
 				      byte[] sendData = new byte[1024];
 				      byte[] receiveData = new byte[1024];
 				      
-				      sendData = message.getBytes();
-				      System.out.println("Sending to sequencer : "+ message );
-				      DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 1000);
+				      sendData = jsonString.getBytes();
+				      System.out.println("Sending to FE : "+ jsonString );
+				      DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 2222);
 				      clientSocket.send(sendPacket);
 			    	           
 				      

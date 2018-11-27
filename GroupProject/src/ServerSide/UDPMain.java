@@ -63,13 +63,13 @@ public class UDPMain {
         //***********************************************************
         
         ///////////////////////testing execution of methods/////////////////////////////////////
-        
+        /*
         System.out.println(firstServer.createERecord("CA1001", "Leo", "Mototo", 1231, "leo@gmail.com", "P1001"));
         System.out.println(secondServer.createERecord("US1001", "Leo", "Mototo", 1231, "leo@gmail.com", "P1001"));
         System.out.println(firstServer.getRecordCounts("CA10001"));
         System.out.println(firstServer.editRecord("CA10001" ,"MR10001", "mailID", "123@gmail.com"));
         System.out.println(secondServer.getRecordCounts("US10001"));
-        
+        */
         ///////////////////////END testing/////////////////////////////////////
     }
 }
