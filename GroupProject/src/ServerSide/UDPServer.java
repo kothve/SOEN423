@@ -31,12 +31,90 @@ public class UDPServer extends Thread {
     int desiredPort;
     String currentLocation;
 
-    public UDPServer(int port, String location,  HashMap<Character, ArrayList<Records>> newReplica ) {
+    public UDPServer(int port, String location,  HashMap<Character, ArrayList<Records>> newReplica, int rm ) {
         this.desiredPort = port;
         this.currentLocation = location;
         this.database = newReplica;
+        this.rm = rm;
     }
 
+    public UDPServer(int port, String location, String errorType) {
+    	
+    	 this.desiredPort = port;
+         this.currentLocation = location;
+
+         HashMap<Character, ArrayList<Records>> database  = new HashMap();
+         
+         if(port == 6050 || port == 6051 || port == 6052) {
+         	
+         	rm = 1;
+     	
+         }
+         else if(port == 6053 || port == 6054 || port == 6055){
+         	
+         	rm = 2;
+         }
+         else if(port == 6056 || port == 6057 || port == 6058){
+         	
+         	rm = 3;
+         }
+         
+         
+         
+         if(currentLocation.equals("CA")) {
+
+             //put 3 records inside database
+             ArrayList<Records> addNewArray1 = new ArrayList<Records>();
+             ArrayList<Records> addNewArray2 = new ArrayList<Records>();
+
+             database.put('m', addNewArray1);
+             database.get('m').add(new Records( "MR1" , " Olivier ", 	" Mercier-Peetz ",	 27181000  , " oliviermercierpeetz@live.ca ", " P1232132 ", " UofConcordia ", " A1 " ,"CA"));
+             database.get('m').add(new Records( "MR2" , " Karen ", 	" Marquez ",	 21232123  , " km@live.ca ", " P123213 ", " UofConcordia ", " A1 " ,"CA"));
+             database.put('p', addNewArray2);
+             database.get('p').add(new Records( "ER3" , " Uwe ", 	" Peetz ",	 2122323  , " uwe-p@live.ca ", "P10001"));
+             //3 records inside hashmap
+
+             this.numberOfRecords = 3;
+
+             //UDP_Server.setNumberOfRecords(numberOfRecords);
+             this.database = database;
+             UDP_Connect_to_other_replicas = new UDP_Connect(port, database, numberOfRecords); 
+             UDP_Connect_to_other_replicas.start();
+
+         }
+
+         else if(currentLocation.equals("US")) {
+
+             ArrayList<Records> addNewArray1 = new ArrayList<Records>();
+             database.put('o', addNewArray1);
+             database.get('o').add(new Records( "MR4" , " Dave ", 	" Oboto ",	 321321  , " obotoz@live.ca ", " P1654452 ", " Canopy ", " A1 " ,"US"));
+
+             this.numberOfRecords = 1;
+
+             this.database = database;
+             UDP_Connect_to_other_replicas = new UDP_Connect(port, database, numberOfRecords); 
+             UDP_Connect_to_other_replicas.start();
+         }
+         else if(currentLocation.equals("UK")) {
+
+             ArrayList<Records> addNewArray1 = new ArrayList<Records>();
+             ArrayList<Records> addNewArray2 = new ArrayList<Records>();
+             database.put('a', addNewArray1);
+             database.get('a').add(new Records( "MR5" , " Alexia ", 	" Alena ",	 432412  , " a.alena@live.ca ", " P1632 ", " ACB ", " A1 " ,"UK"));
+             database.put('c', addNewArray2);
+             database.get('c').add(new Records( "ER6" , " Bob ", 	" Cotton ",	 5432412  , " b.c@live.ca ", " P163223 ", " Namaste tech ", " A1 " ,"UK"));
+
+             numberOfRecords = 2;
+             this.database = database;
+             UDP_Connect_to_other_replicas = new UDP_Connect(port, database, numberOfRecords); 
+             UDP_Connect_to_other_replicas.start();
+         }
+
+         prinData();
+    	
+    	
+    	
+    }
 
     //Constructor
     public UDPServer(int port, String location)
@@ -567,7 +645,7 @@ public class UDPServer extends Thread {
  		   
  		     
  		   
- 		   printToLogs(all_Records);  
+ 		  printToLogs(all_Records);  
  		return all_Records ;
  	      // code to be supplied
  	   }
@@ -860,7 +938,7 @@ public class UDPServer extends Thread {
  			
  			try
  			{
- 				String filename = this.currentLocation+".txt";
+ 				String filename = rm+this.currentLocation+".txt";
  				
  				
  				
@@ -868,7 +946,7 @@ public class UDPServer extends Thread {
  			    
  			    FileWriter fw = new FileWriter(filename,true); //the true will append the new data
  			    fw.write("\n\n----------"+getTimeStamp()+"----------\n"+
- 			    		"SERVER: "+ currentLocation+"\n" +
+ 			    		"SERVER: "+ " RM"+rm + currentLocation+"\n" +
  			    		info +"\n"+
  			    		"----------"+getTimeStamp()+"----------\n\n"
  			    		

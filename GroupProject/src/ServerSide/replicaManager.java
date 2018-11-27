@@ -221,6 +221,20 @@ public class replicaManager implements Runnable {
                                 String projectName = arr.getJSONObject(i).getString("projectName");
                                 String projectID = arr.getJSONObject(i).getString("projectID");
                                 
+                                if(recordID.substring(0,2).equals("MR") && recordID.charAt(5) == '0'){
+                                	recordID = "MR"+recordID.charAt(6);
+                                }
+                                else if(recordID.substring(5, 6).equals("MR") && recordID.charAt(5) != '0') {
+                                	recordID = "MR"+recordID.substring(5, 7);
+                                }
+                                if(recordID.substring(0,2).equals("ER") && recordID.charAt(5) == '0'){
+                                	recordID = "ER"+recordID.charAt(6);
+                                }
+                                else if(recordID.substring(5, 6).equals("ER") && recordID.charAt(5) != '0') {
+                                	recordID = "ER"+recordID.substring(5, 7);
+                                }
+                                
+                                
                                 Records currentRecord = new Records(recordID, firstName,lastName,employeeID,mailID,projectID,projectClient,projectName,location);
                                 newList.add(currentRecord);
                                 
@@ -245,24 +259,24 @@ public class replicaManager implements Runnable {
                         {
                             oldPort = CAReplica.getPort();
                             CAReplica.interrupt();
-                            CAReplica = new UDPServer(oldPort,replicaToReplaceLocation,replacmentReplica);
+                            CAReplica = new UDPServer(oldPort,replicaToReplaceLocation,replacmentReplica,this.rmNumber);
                         }
                         else if(replicaToReplaceLocation.equals("US"))
                         {
                             oldPort = USReplica.getPort();
                             USReplica.interrupt();
-                            USReplica = new UDPServer(oldPort,replicaToReplaceLocation,replacmentReplica);
+                            USReplica = new UDPServer(oldPort,replicaToReplaceLocation,replacmentReplica,this.rmNumber);
                         }
                         else
                         {
                             oldPort = UKReplica.getPort();
                             UKReplica.interrupt();
-                            UKReplica = new UDPServer(oldPort,replicaToReplaceLocation,replacmentReplica);
+                            UKReplica = new UDPServer(oldPort,replicaToReplaceLocation,replacmentReplica, this.rmNumber);
                         }
 
                         System.out.println("Successful Replacment for RM #" + this.rmNumber + " with location " + replicaToReplaceLocation);
 
-                        UDPServer newReplica = new UDPServer(oldPort,replicaToReplaceLocation,replacmentReplica);
+                        UDPServer newReplica = new UDPServer(oldPort,replicaToReplaceLocation,replacmentReplica, this.rmNumber);
                         newReplica.prinData();
                         //**********************************************************************
                     }
