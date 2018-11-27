@@ -347,7 +347,9 @@ public class UDPServer extends Thread {
  		   		   		   	   
  		   
  			    
- 			   
+ 			  
+  			  UDP_Connect_to_other_replicas.numberOfRecords = getHashSize(database); 
+  			  numberOfRecords =  getHashSize(database);	   
  			   
  			   
  	       
@@ -432,7 +434,8 @@ public class UDPServer extends Thread {
  	       //counter = numberOfRecords;
  			  
  			   
- 		   
+ 			  UDP_Connect_to_other_replicas.numberOfRecords = getHashSize(database); 
+ 			  numberOfRecords =  getHashSize(database);
  		   
  		   
  		   
@@ -455,11 +458,11 @@ public class UDPServer extends Thread {
  		  String CA = null;
  		  String US = null;
  		  String UK = null;
- 		  String all_Records = UDP_Connect_to_other_replicas.getRecords(6001) ;
+ 		  String all_Records = "Error";
  		   
  		   
  		   if(currentLocation.equals("CA")) {
- 			  CA = Integer.toString(UDP_Connect_to_other_replicas.numberOfRecords); 
+ 			  CA = Integer.toString(getHashSize(database)); 
  			  
  			  if(rm == 1 ) {
  				 US = UDP_Connect_to_other_replicas .getRecords(6051);
@@ -495,7 +498,7 @@ public class UDPServer extends Thread {
  		   }
  		   else if(currentLocation.equals("US")) {
  			   
- 			   	US = Integer.toString(UDP_Connect_to_other_replicas .numberOfRecords); 
+ 			   	US  = Integer.toString(getHashSize(database)); 
  				
  			   	
  			   if(rm == 1 ) {
@@ -524,7 +527,7 @@ public class UDPServer extends Thread {
  		   }
  		   
  		   else if(currentLocation.equals("UK")) {
- 			   	UK = Integer.toString(UDP_Connect_to_other_replicas .numberOfRecords); 
+ 			   	UK =  Integer.toString(getHashSize(database)); 
  			   	
  			   	
  			   	
